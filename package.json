@@ -1,0 +1,40 @@
+{
+  "name": "aspxauth",
+  "version": "1.0.0",
+  "description": "Verify and decrypt .NET's .ASPXAUTH cookie from node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "LeanKit",
+  "contributors": [
+    {
+      "name": "Matt Dunlap",
+      "email": "matt.dunlap@leankit.com",
+      "url": "https://github.com/prestaul"
+    },
+    {
+      "name": "Josh Bush",
+      "email": "josh.bush@leankit.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeanKit-Labs/aspxauth.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LeanKit-Labs/aspxauth/issues"
+  },
+  "homepage": "https://github.com/LeanKit-Labs/aspxauth#readme",
+  "keywords": [
+    ".NET",
+    "authentication",
+    "auth",
+    ".ASPXAUTH",
+    "FormsAuthentication"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "node-int64": "^0.4.0"
+  }
+}
