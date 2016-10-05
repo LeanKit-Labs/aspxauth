@@ -1,10 +1,8 @@
-const crypto = require( "crypto" );
-const BufferReader = require( "./buffer-reader" );
+import crypto from "crypto";
+import BufferReader from "./buffer-reader";
 
 const VALIDATION_METHODS = {
-	sha1: {
-		signatureSize: 20
-	}
+	sha1: { signatureSize: 20 }
 };
 
 const DECRYPTION_METHODS = {
@@ -31,7 +29,7 @@ const FOOTER = 0xff;
 	validateExpiration (bool): (default true) if false then decrypted tickets will be returned even if past their expiration
  */
 
-module.exports = config => {
+export default config => {
 	const VALIDATION_METHOD = VALIDATION_METHODS[ config.validationMethod || "sha1" ];
 	const DECRYPTION_METHOD = DECRYPTION_METHODS[ config.decryptionMethod || "aes" ];
 	const VALIDATION_KEY = new Buffer( config.validationKey, "hex" );
