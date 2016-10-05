@@ -3,15 +3,18 @@
   "version": "1.0.0",
   "description": "Verify and decrypt .NET's .ASPXAUTH cookie from node",
   "main": "lib/index.js",
-  "files": [ "lib" ],
+  "files": [
+    "lib"
+  ],
   "scripts": {
-    "build": "babel src -d lib",
+    "build": "babel src -d lib --source-maps",
     "format": "jscs --fix ./",
     "lint": "eslint --fix ./",
     "pretest": "npm run format && npm run lint",
-    "test": "mocha --require spec/babelhook spec/*.spec.js",
-    "test:watch": "npm test -- -w",
-    "cover": "nyc -r text-summary -r html -- npm test",
+    "test": "npm run cover",
+	"test:only":  "mocha --require spec/babelhook spec/*.spec.js",
+    "test:watch": "npm run test:only -- -w",
+    "cover": "nyc -r text-summary -r html -- npm run test:only",
     "cover:show": "open \"file://$PWD/coverage/index.html\"",
     "prepublish": "npm run build"
   },
@@ -49,7 +52,7 @@
   "devDependencies": {
     "babel-cli": "^6.16.0",
     "babel-eslint": "^7.0.0",
-    "babel-preset-node5": "^11.1.0",
+    "babel-preset-node6": "^11.0.0",
     "babel-register": "^6.16.3",
     "chai": "^3.5.0",
     "eslint": "^3.7.0",
