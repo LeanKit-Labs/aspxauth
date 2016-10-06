@@ -1,6 +1,6 @@
 {
   "name": "aspxauth",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Verify and decrypt .NET's .ASPXAUTH cookie from node",
   "main": "lib/index.js",
   "files": [
@@ -12,7 +12,7 @@
     "lint": "eslint --fix ./",
     "pretest": "npm run format && npm run lint",
     "test": "npm run cover",
-	"test:only":  "mocha --require spec/babelhook spec/*.spec.js",
+    "test:only": "mocha --require spec/babelhook spec/*.spec.js",
     "test:watch": "npm run test:only -- -w",
     "cover": "nyc -r text-summary -r html -- npm run test:only",
     "cover:show": "open \"file://$PWD/coverage/index.html\"",
