@@ -11,7 +11,8 @@ describe( "aspxauth#decrypt", () => {
 
 	const version2Token = "874B814416D1064EFF67A64D1200525471A0C74ADA3B450F05CBBCC7B2BEC6C9E5D20F1AD4E83DB3C72A965096C9680D4F667DAC7AFDAE168C7EE9D5CF77EBAFBB439CE461500A3E9547883E87B4BA5FEC14F9EECD1AECC594ECA46C2A8FA2652195A6562465E6811E36E2B119EE1A927D11E84E89D3AF6870F00A9C72E65F26A5E8EA7EBDADE8C4CD15BFF433FAAF269F17C4EC85C49069981227416EDD2086FA4D453D25A865580990608F142D167CBC671717C0C22E8E6FC28CA3F1C385462E40B6505AE67EEEFA90EC6BB2E6E7D04B0F6CB457223EAFE6BA0C32D7F867C764D33ABA914ABDACA6FBCF8DB7C5628A72606E3F113794BB071A2F432C9422017ECFEEBFC28C1F1A7AEE12AD3AFA9E7916FF52B041EA6BF44FAD4DBBFD1A6A8B4A4EBF37";
 
-	const version2TokenContents = { ticketVersion: 2,
+	const version2TokenContents = {
+		ticketVersion: 2,
 		issueDate: new Date( "2016-09-23T15:38:02.250Z" ),
 		expirationDate: new Date( "2016-10-23T15:38:02.250Z" ),
 		isPersistent: true,
@@ -84,8 +85,7 @@ describe( "aspxauth#decrypt", () => {
 	describe( "when specified validation method is not supported", () => {
 		it( "should return null", () => {
 			config.validationMethod = "no-good";
-			configAndDecrypt();
-			( result === null ).should.be.true; // eslint-disable-line no-unused-expressions
+			configAndDecrypt.should.throw( Error );
 		} );
 	} );
 
@@ -100,8 +100,7 @@ describe( "aspxauth#decrypt", () => {
 	describe( "when specified decryption method is not supported", () => {
 		it( "should return null", () => {
 			config.decryptionMethod = "no-good";
-			configAndDecrypt();
-			( result === null ).should.be.true; // eslint-disable-line no-unused-expressions
+			configAndDecrypt.should.throw( Error );
 		} );
 	} );
 
