@@ -15,8 +15,10 @@ module.exports = {
 		"consistent-return": 0,
 		"prefer-template": 0,
 		"no-magic-numbers": 0,
+		"max-lines": 0,
 		"max-statements": 0,
 		"no-invalid-this": 0,
+		"no-mixed-operators": 0,
 
 		// Replace some default rules with ones that work with babel/es6
 		"generator-star-spacing": 0,
