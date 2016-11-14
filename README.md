@@ -1,6 +1,6 @@
 # aspxauth
 
-Provides methods and middleware to assist in validating and decrypting .NET authorization tickets usually in the .ASPXAUTH cookie.
+Provides utilities to assist in generating, validating and decrypting .NET authorization tickets (usually set in the .ASPXAUTH cookie) for interoperation with .NET authentication.
 
 ## Setup
 
@@ -12,9 +12,15 @@ The module must be initialized with configuration that corresponds to your .NET 
 - `decryptionIV` (string): hex encoded initialization vector (defaults to a vector of zeros)
 - `decryptionKey` (string): hex encoded key to use for decryption
 - `ticketVersion` (integer): if specified then will be used to validate the ticket version
-- `validateExpiration` (bool): (default true) if false then decrypted tickets will be returned even if past their expiration
+- `validateExpiration` (bool): (default `true`) if false then decrypted tickets will be returned even if past their expiration
+- `encryptAsBuffer` (bool): (default `false`) if true, encrypt will return a buffer rather than a hex encoded string
+- `defaultTTL` (integer): (default 24hrs) if provided is used as milliseconds from `issueDate` to expire generated tickets
+- `defaultPersistent` (bool): (default `false`) if provided is used as default `isPersistent` value for generated tickets
+- `defaultCookiePath` (string): (default "/") if provided is used as default `cookiePath` for generated tickets
+
 
 ```js
+// Configure
 var aspxauth = require( "aspxauth" )( {
     validationMethod: "sha1",
     validationKey: process.env.DOTNET_VALIDATION_KEY,
@@ -23,6 +29,13 @@ var aspxauth = require( "aspxauth" )( {
     decryptionKey: process.env.DOTNET_DECRYPTION_KEY
 } );
 
+// Generate encrypted cookie
+var encryptedCookieValue = aspxauth.encrypt( {
+    name: "some.username@place.com",
+    customData: "other data"
+} );
+
+// Decrypt an existing cookie
 var authTicket = aspxauth.decrypt( req.cookies[ ".ASPXAUTH" ] );
 ```
 

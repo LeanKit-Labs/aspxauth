@@ -12,7 +12,7 @@
     "lint": "eslint --fix ./",
     "pretest": "npm run format && npm run lint",
     "test": "npm run cover",
-    "test:only": "mocha --require spec/babelhook spec/*.spec.js",
+    "test:only": "mocha --require babel-register spec/*.spec.js",
     "test:watch": "npm run test:only -- -w",
     "cover": "nyc -r text-summary -r html -- npm run test:only",
     "cover:show": "open \"file://$PWD/coverage/index.html\"",
@@ -47,7 +47,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "node-int64": "^0.4.0"
+    "bignum": "^0.12.5"
   },
   "devDependencies": {
     "babel-cli": "^6.16.0",
@@ -59,6 +59,7 @@
     "eslint-config-leankit": "^3.0.0",
     "eslint-plugin-babel": "^3.3.0",
     "jscs": "^3.0.7",
+    "mocha": "^3.1.2",
     "nyc": "^8.3.0",
     "sinon": "^1.17.6"
   },
