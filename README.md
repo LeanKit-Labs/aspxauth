@@ -13,7 +13,7 @@ The module must be initialized with configuration that corresponds to your .NET 
 - `decryptionKey` (string): hex encoded key to use for decryption
 - `ticketVersion` (integer): if specified then will be used to validate the ticket version
 - `validateExpiration` (bool): (default `true`) if false then decrypted tickets will be returned even if past their expiration
-- `generateAsBuffer` (bool): (default `false`) if true, generate will return a buffer rather than a hex encoded string
+- `encryptAsBuffer` (bool): (default `false`) if true, encrypt will return a buffer rather than a hex encoded string
 - `defaultTTL` (integer): (default 24hrs) if provided is used as milliseconds from `issueDate` to expire generated tickets
 - `defaultPersistent` (bool): (default `false`) if provided is used as default `isPersistent` value for generated tickets
 - `defaultCookiePath` (string): (default "/") if provided is used as default `cookiePath` for generated tickets
@@ -30,7 +30,7 @@ var aspxauth = require( "aspxauth" )( {
 } );
 
 // Generate encrypted cookie
-var generatedCookie = aspxauth.generate( {
+var encryptedCookieValue = aspxauth.encrypt( {
     name: "some.username@place.com",
     customData: "other data"
 } );

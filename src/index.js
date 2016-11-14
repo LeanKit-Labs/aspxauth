@@ -33,7 +33,7 @@ const FOOTER = 0xff;
 	ticketVersion (integer): if specified then will be used to validate the ticket version
 	validateExpiration (bool): (default true) if false then decrypted tickets will be returned even if past their expiration
 
-	generateAsBuffer (bool): (default false) if true, generate will return a buffer rather than a hex encoded string
+	encryptAsBuffer (bool): (default false) if true, generate will return a buffer rather than a hex encoded string
 	defaultTTL (integer): (default 24hrs) if provided is used as milliseconds from issueDate to expire generated tickets
 	defaultPersistent (bool): (default false) if provided is used as default isPersistent value for generated tickets
 	defaultCookiePath (string): (default "/") if provided is used as default cookie path for generated tickets
@@ -55,7 +55,7 @@ export default config => {
 	const REQUIRED_VERSION = config.ticketVersion || false;
 	const VALIDATE_EXPIRATION = config.validateExpiration !== false;
 
-	const AS_BUFFER = !!config.generateAsBuffer;
+	const AS_BUFFER = !!config.encryptAsBuffer;
 	const DEFAULT_TTL = config.defaultTTL || 86400000;
 	const DEFAULT_IS_PERSISTENT = !!config.defaultPersistent;
 	const DEFAULT_COOKIE_PATH = config.defaultCookiePath || "/";
@@ -116,7 +116,7 @@ export default config => {
 		}
 	}
 
-	function generate( ticket ) {
+	function encrypt( ticket ) {
 		const stringsSize = BufferWriter.stringSize( ticket.name ) + BufferWriter.stringSize( ticket.customData ) + BufferWriter.stringSize( ticket.cookiePath || DEFAULT_COOKIE_PATH );
 		const writer = new BufferWriter( BASE_PAYLOAD_SIZE + stringsSize );
 
@@ -155,5 +155,5 @@ export default config => {
 		return AS_BUFFER ? final : final.toString( "hex" );
 	}
 
-	return { decrypt, generate };
+	return { decrypt, encrypt };
 };

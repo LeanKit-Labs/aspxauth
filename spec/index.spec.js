@@ -135,7 +135,7 @@ describe( "aspxauth#decrypt", () => {
 	} );
 } );
 
-describe( "aspxauth#generate", () => {
+describe( "aspxauth#encrypt", () => {
 	let aspxauth;
 
 	function configure( opts ) {
@@ -146,14 +146,14 @@ describe( "aspxauth#generate", () => {
 		}, opts ) );
 	}
 
-	function generate( ticket ) {
-		return aspxauth.generate( Object.assign( {
+	function encrypt( ticket ) {
+		return aspxauth.encrypt( Object.assign( {
 			name: "fake name"
 		}, ticket ) );
 	}
 
 	function test( incomingTicket, expectedTicket ) {
-		const cookie = generate( incomingTicket );
+		const cookie = encrypt( incomingTicket );
 		cookie.should.be.a( "string" ).and.match( /^[a-f0-9]+$/ );
 
 		const actualTicket = aspxauth.decrypt( cookie );
@@ -337,7 +337,7 @@ describe( "aspxauth#generate", () => {
 
 		describe( "when ticketVersion is wrong", () => {
 			it( "should throw an error", () => {
-				( () => generate( { ticketVersion: 2 } ) ).should.throw( "Invalid ticket version 2, expected 3" );
+				( () => encrypt( { ticketVersion: 2 } ) ).should.throw( "Invalid ticket version 2, expected 3" );
 			} );
 		} );
 
@@ -349,13 +349,13 @@ describe( "aspxauth#generate", () => {
 		} );
 	} );
 
-	describe( "with generateAsBuffer set to true", () => {
+	describe( "with encryptAsBuffer set to true", () => {
 		before( () => {
-			configure( { generateAsBuffer: true } );
+			configure( { encryptAsBuffer: true } );
 		} );
 
 		it( "should return a buffer object", () => {
-			generate( {} ).should.be.an.instanceof( Buffer );
+			encrypt( {} ).should.be.an.instanceof( Buffer );
 		} );
 	} );
 } );
