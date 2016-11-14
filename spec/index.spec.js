@@ -1,6 +1,3 @@
-/* eslint-env mocha */
-/* eslint max-lines: ["error", 200]*/
-
 import factory from "../src/index";
 import { useFakeTimers } from "sinon";
 import chai from "chai";
@@ -44,7 +41,7 @@ describe( "aspxauth#decrypt", () => {
 	} );
 
 	describe( "when configuration and token are valid", () => {
-		it( "should return token object", function() {
+		it( "should return ticket object", function() {
 			configAndDecrypt();
 			result.should.eql( version2TokenContents );
 		} );
@@ -55,6 +52,14 @@ describe( "aspxauth#decrypt", () => {
 			token = "87";
 			configAndDecrypt();
 			( result === null ).should.be.true; // eslint-disable-line no-unused-expressions
+		} );
+	} );
+
+	describe( "when token is a buffer", () => {
+		it( "should return token object", function() {
+			token = new Buffer( token, "hex" );
+			configAndDecrypt();
+			result.should.eql( version2TokenContents );
 		} );
 	} );
 
@@ -126,6 +131,231 @@ describe( "aspxauth#decrypt", () => {
 			config.validateExpiration = false;
 			configAndDecrypt();
 			result.should.eql( version2TokenContents );
+		} );
+	} );
+} );
+
+describe( "aspxauth#generate", () => {
+	let aspxauth;
+
+	function configure( opts ) {
+		aspxauth = factory( Object.assign( {
+			validationKey: "709FC62CDB7CC79821DEBB2062FDED6795AD8CB37341B55B3763923BEEF662865AF7EC613F9A76171CA3C336ED119D1C103555D87D092BAD4A63F807592B0520",
+			decryptionKey: "9DA83917EE2DE9008FCB45986195A9BC11EF9496D67042C76B4052CEFA22EF45",
+			validateExpiration: false
+		}, opts ) );
+	}
+
+	function generate( ticket ) {
+		return aspxauth.generate( Object.assign( {
+			name: "fake name"
+		}, ticket ) );
+	}
+
+	function test( incomingTicket, expectedTicket ) {
+		const cookie = generate( incomingTicket );
+		cookie.should.be.a( "string" ).and.match( /^[a-f0-9]+$/ );
+
+		const actualTicket = aspxauth.decrypt( cookie );
+		actualTicket.should.be.an( "object" );
+
+		Object.keys( expectedTicket ).forEach( key => {
+			if ( expectedTicket[ key ] instanceof Date ) {
+				actualTicket[ key ].should.be.a( "date", `Expected ticket to have property ${ key } of type Date` );
+				actualTicket[ key ].getTime().should.equal( expectedTicket[ key ].getTime(), `Expected ticket to have property ${ key } of ${ expectedTicket[ key ] }, but got ${ actualTicket[ key ] }` );
+			} else {
+				actualTicket.should.have.property( key, expectedTicket[ key ] );
+			}
+		} );
+	}
+
+	describe( "with no optional configuration", () => {
+		before( () => {
+			configure( {} );
+		} );
+
+		describe( "when issueDate is set", () => {
+			it( "should use the set date", () => {
+				const ticket = { issueDate: new Date( 2016, 0, 1, 0, 0, 0 ) };
+				test( ticket, ticket );
+			} );
+
+			describe( "and expirationDate is missing", () => {
+				it( "should use a 24 hour ttl", () => {
+					const ticket = { issueDate: new Date( 2016, 0, 1, 0, 0, 0 ) };
+					test( ticket, { expirationDate: new Date( 2016, 0, 2, 0, 0, 0 ) } );
+				} );
+			} );
+
+			describe( "and expirationDate is set", () => {
+				it( "should use the set expiration", () => {
+					const ticket = { issueDate: new Date( 2016, 0, 1, 0, 0, 0 ), expirationDate: new Date( 2017, 0, 1, 0, 0, 0 ) };
+					test( ticket, { expirationDate: new Date( 2017, 0, 1, 0, 0, 0 ) } );
+				} );
+			} );
+		} );
+
+		describe( "with no issueDate", () => {
+			let clocks;
+
+			before( () => {
+				clocks = useFakeTimers();
+			} );
+
+			after( () => {
+				clocks.restore();
+			} );
+
+			it( "should use the current date/time", () => {
+				test( {}, { issueDate: new Date() } );
+			} );
+
+			describe( "and expirationDate is missing", () => {
+				it( "should use a 24 hour ttl", () => {
+					const tomorrow = new Date();
+					tomorrow.setDate( tomorrow.getDate() + 1 );
+					test( {}, { expirationDate: tomorrow } );
+				} );
+			} );
+
+			describe( "and expirationDate is set", () => {
+				it( "should use the set expiration", () => {
+					const ticket = { expirationDate: new Date( 2017, 0, 1, 0, 0, 0 ) };
+					test( ticket, { expirationDate: new Date( 2017, 0, 1, 0, 0, 0 ) } );
+				} );
+			} );
+		} );
+
+		describe( "when isPersistent is missing", () => {
+			it( "should use the default", () => {
+				test( {}, { isPersistent: false } );
+			} );
+		} );
+
+		describe( "when isPersistent is set", () => {
+			it( "should use the set value", () => {
+				const ticket = { isPersistent: true };
+				test( ticket, ticket );
+			} );
+		} );
+
+		describe( "when cookiePath is missing", () => {
+			it( "should use \"/\"", () => {
+				test( {}, { cookiePath: "/" } );
+			} );
+		} );
+
+		describe( "when cookiePath is set", () => {
+			it( "should use the set cookiePath", () => {
+				const ticket = { cookiePath: "/to/grandmothers/house" };
+				test( ticket, ticket );
+			} );
+		} );
+
+		describe( "when ticketVersion is missing", () => {
+			it( "should use version one", () => {
+				test( {}, { ticketVersion: 1 } );
+			} );
+		} );
+
+		describe( "when ticketVersion is set", () => {
+			it( "should add the set version", () => {
+				const ticket = { ticketVersion: 7 };
+				test( ticket, ticket );
+			} );
+		} );
+	} );
+
+	describe( "with defaultTTL", () => {
+		before( () => {
+			configure( { defaultTTL: 60000 } );
+		} );
+
+		describe( "when expirationDate is missing", () => {
+			it( "should use the new default TTL", () => {
+				const ticket = { issueDate: new Date( 2016, 0, 1, 0, 0, 0 ) };
+				test( ticket, { expirationDate: new Date( 2016, 0, 1, 0, 1, 0 ) } );
+			} );
+		} );
+
+		describe( "when expirationDate is set", () => {
+			it( "should use the set expiration", () => {
+				const ticket = { expirationDate: new Date( 2017, 0, 1 ) };
+				test( ticket, ticket );
+			} );
+		} );
+	} );
+
+	describe( "with defaultPersistent", () => {
+		before( () => {
+			configure( { defaultPersistent: true } );
+		} );
+
+		describe( "when isPersistent is missing", () => {
+			it( "should use the new default", () => {
+				test( {}, { isPersistent: true } );
+			} );
+		} );
+
+		describe( "when isPersistent is set", () => {
+			it( "should use the set value", () => {
+				const ticket = { isPersistent: false };
+				test( ticket, ticket );
+			} );
+		} );
+	} );
+
+	describe( "with defaultCookiePath", () => {
+		before( () => {
+			configure( { defaultCookiePath: "/to/grandmothers/house" } );
+		} );
+
+		describe( "when cookiePath is missing", () => {
+			it( "should use the default cookiePath", () => {
+				test( {}, { cookiePath: "/to/grandmothers/house" } );
+			} );
+		} );
+
+		describe( "when cookiePath is set", () => {
+			it( "should use the set cookiePath", () => {
+				const ticket = { cookiePath: "/home/again" };
+				test( ticket, ticket );
+			} );
+		} );
+	} );
+
+	describe( "with required version", () => {
+		before( () => {
+			configure( { ticketVersion: 3 } );
+		} );
+
+		describe( "when ticketVersion is missing", () => {
+			it( "should add the new default version", () => {
+				test( {}, { ticketVersion: 3 } );
+			} );
+		} );
+
+		describe( "when ticketVersion is wrong", () => {
+			it( "should throw an error", () => {
+				( () => generate( { ticketVersion: 2 } ) ).should.throw( "Invalid ticket version 2, expected 3" );
+			} );
+		} );
+
+		describe( "when ticketVersion is correct", () => {
+			it( "should use the set version", () => {
+				const ticket = { ticketVersion: 3 };
+				test( ticket, ticket );
+			} );
+		} );
+	} );
+
+	describe( "with generateAsBuffer set to true", () => {
+		before( () => {
+			configure( { generateAsBuffer: true } );
+		} );
+
+		it( "should return a buffer object", () => {
+			generate( {} ).should.be.an.instanceof( Buffer );
 		} );
 	} );
 } );
