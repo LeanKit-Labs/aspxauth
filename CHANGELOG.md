@@ -1,5 +1,9 @@
 ## 1.x
 
+### 1.1.1
+
+* Removed babel and build step
+
 ### 1.1.0
 
 * Added encrypt method
