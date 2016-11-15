@@ -1,4 +1,4 @@
-import bignum from "bignum";
+const bignum = require( "bignum" );
 
 const BYTES_PER_CHAR = 2;
 const TICKS_IN_MILLISECOND = 10000;
@@ -53,4 +53,4 @@ BufferWriter.stringSize = function( val ) {
 	return ( val && val.length || 0 ) * BYTES_PER_CHAR + 1;
 };
 
-export default BufferWriter;
+module.exports = BufferWriter;

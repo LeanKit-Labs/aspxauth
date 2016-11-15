@@ -2,21 +2,19 @@
   "name": "aspxauth",
   "version": "1.1.0",
   "description": "Verify and decrypt .NET's .ASPXAUTH cookie from node",
-  "main": "lib/index.js",
+  "main": "src/index.js",
   "files": [
-    "lib"
+    "src"
   ],
   "scripts": {
-    "build": "babel src -d lib --source-maps",
     "format": "jscs --fix ./",
     "lint": "eslint --fix ./",
     "pretest": "npm run format && npm run lint",
     "test": "npm run cover",
-    "test:only": "mocha --require babel-register spec/*.spec.js",
+    "test:only": "mocha spec/*.spec.js",
     "test:watch": "npm run test:only -- -w",
     "cover": "nyc -r text-summary -r html -- npm run test:only",
-    "cover:show": "open \"file://$PWD/coverage/index.html\"",
-    "prepublish": "npm run build"
+    "cover:show": "open \"file://$PWD/coverage/index.html\""
   },
   "author": "LeanKit",
   "contributors": [
@@ -50,14 +48,9 @@
     "bignum": "^0.12.5"
   },
   "devDependencies": {
-    "babel-cli": "^6.16.0",
-    "babel-eslint": "^7.0.0",
-    "babel-preset-node6": "^11.0.0",
-    "babel-register": "^6.16.3",
     "chai": "^3.5.0",
     "eslint": "^3.7.0",
     "eslint-config-leankit": "^3.0.0",
-    "eslint-plugin-babel": "^3.3.0",
     "jscs": "^3.0.7",
     "mocha": "^3.1.2",
     "nyc": "^8.3.0",

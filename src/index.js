@@ -1,7 +1,7 @@
-import assert from "assert";
-import crypto from "crypto";
-import BufferReader from "./buffer-reader";
-import BufferWriter from "./buffer-writer";
+const assert = require( "assert" );
+const crypto = require( "crypto" );
+const BufferReader = require( "./buffer-reader" );
+const BufferWriter = require( "./buffer-writer" );
 
 const VALIDATION_METHODS = {
 	sha1: {
@@ -39,7 +39,7 @@ const FOOTER = 0xff;
 	defaultCookiePath (string): (default "/") if provided is used as default cookie path for generated tickets
  */
 
-export default config => {
+module.exports = config => {
 	const VALIDATION_METHOD = VALIDATION_METHODS[ config.validationMethod || "sha1" ];
 	const DECRYPTION_METHOD = DECRYPTION_METHODS[ config.decryptionMethod || "aes" ];
 

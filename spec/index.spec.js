@@ -1,6 +1,6 @@
-import factory from "../src/index";
-import { useFakeTimers } from "sinon";
-import chai from "chai";
+const factory = require( "../src/index" );
+const { useFakeTimers } = require( "sinon" );
+const chai = require( "chai" );
 chai.should();
 
 describe( "aspxauth#decrypt", () => {
