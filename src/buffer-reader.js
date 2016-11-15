@@ -1,5 +1,5 @@
-import assert from "assert";
-import bignum from "bignum";
+const assert = require( "assert" );
+const bignum = require( "bignum" );
 
 const BYTES_PER_CHAR = 2;
 const TICKS_IN_MILLISECOND = 10000;
@@ -49,4 +49,4 @@ class BufferReader {
 	}
 }
 
-export default BufferReader;
+module.exports = BufferReader;
