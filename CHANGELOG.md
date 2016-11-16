@@ -1,5 +1,9 @@
 ## 1.x
 
+### 1.1.2
+
+* Remove moar es6 and add use strict
+
 ### 1.1.1
 
 * Removed babel and build step
