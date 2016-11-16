@@ -1,3 +1,5 @@
+"use strict";
+
 const assert = require( "assert" );
 const crypto = require( "crypto" );
 const BufferReader = require( "./buffer-reader" );
