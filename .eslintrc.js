@@ -14,6 +14,7 @@ module.exports = {
 		"max-lines": 0,
 		"max-statements": 0,
 		"no-invalid-this": 0,
-		"no-mixed-operators": 0
+		"no-mixed-operators": 0,
+		strict: 0
 	}
 };

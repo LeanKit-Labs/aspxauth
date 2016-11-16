@@ -1,5 +1,7 @@
+"use strict";
+
 const factory = require( "../src/index" );
-const { useFakeTimers } = require( "sinon" );
+const useFakeTimers = require( "sinon" ).useFakeTimers;
 const chai = require( "chai" );
 chai.should();
 
