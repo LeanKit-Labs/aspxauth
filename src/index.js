@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require( "assert" );
-const crypto = require( "crypto" );
+const { createCipheriv, createDecipheriv, createHmac, randomBytes } = require( "crypto" );
 const BufferReader = require( "./buffer-reader" );
 const BufferWriter = require( "./buffer-writer" );
 
@@ -50,9 +50,9 @@ module.exports = config => {
 	assert( config.validationKey, "'validationKey' is required" );
 	assert( config.decryptionKey, "'decryptionKey' is required" );
 
-	const VALIDATION_KEY = new Buffer( config.validationKey, "hex" );
-	const DECRYPTION_KEY = new Buffer( config.decryptionKey, "hex" );
-	const DECRYPTION_IV = config.decryptionIV ? new Buffer( config.decryptionIV, "hex" ) : Buffer.alloc( DECRYPTION_METHOD.ivSize );
+	const VALIDATION_KEY = Buffer.from( config.validationKey, "hex" );
+	const DECRYPTION_KEY = Buffer.from( config.decryptionKey, "hex" );
+	const DECRYPTION_IV = config.decryptionIV ? Buffer.from( config.decryptionIV, "hex" ) : Buffer.alloc( DECRYPTION_METHOD.ivSize );
 
 	const REQUIRED_VERSION = config.ticketVersion || false;
 	const VALIDATE_EXPIRATION = config.validateExpiration !== false;
@@ -68,7 +68,7 @@ module.exports = config => {
 		const signature = bytes.slice( -VALIDATION_METHOD.signatureSize );
 		const payload = bytes.slice( 0, -VALIDATION_METHOD.signatureSize );
 
-		const hash = crypto.createHmac( VALIDATION_METHOD.algorithm, VALIDATION_KEY );
+		const hash = createHmac( VALIDATION_METHOD.algorithm, VALIDATION_KEY );
 		hash.update( payload );
 
 		return hash.digest().equals( signature );
@@ -76,13 +76,13 @@ module.exports = config => {
 
 	function decrypt( cookie ) {
 		try {
-			const bytes = cookie instanceof Buffer ? cookie : new Buffer( cookie, "hex" );
+			const bytes = cookie instanceof Buffer ? cookie : Buffer.from( cookie, "hex" );
 
 			if ( !validate( bytes ) ) {
 				return null;
 			}
 
-			const decryptor = crypto.createDecipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, DECRYPTION_IV );
+			const decryptor = createDecipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, DECRYPTION_IV );
 			const payload = bytes.slice( 0, -VALIDATION_METHOD.signatureSize );
 			const decryptedBytes = Buffer.concat( [ decryptor.update( payload ), decryptor.final() ] );
 			const reader = new BufferReader( decryptedBytes );
@@ -123,7 +123,7 @@ module.exports = config => {
 		const writer = new BufferWriter( BASE_PAYLOAD_SIZE + stringsSize );
 
 		// Write a random header to serve as a salt
-		writer.writeBuffer( crypto.randomBytes( DECRYPTION_METHOD.headerSize ) );
+		writer.writeBuffer( randomBytes( DECRYPTION_METHOD.headerSize ) );
 		writer.writeByte( FORMAT_VERSION );
 
 		if ( REQUIRED_VERSION ) {
@@ -146,10 +146,10 @@ module.exports = config => {
 		writer.writeString( ticket.cookiePath || DEFAULT_COOKIE_PATH );
 		writer.writeByte( FOOTER );
 
-		const encryptor = crypto.createCipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, DECRYPTION_IV );
+		const encryptor = createCipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, DECRYPTION_IV );
 		const encryptedBytes = Buffer.concat( [ encryptor.update( writer.buffer ), encryptor.final() ] );
 
-		const hash = crypto.createHmac( "sha1", VALIDATION_KEY );
+		const hash = createHmac( "sha1", VALIDATION_KEY );
 		hash.update( encryptedBytes );
 
 		const final = Buffer.concat( [ encryptedBytes, hash.digest() ] );

@@ -1,7 +1,6 @@
 "use strict";
 
 const assert = require( "assert" );
-const bignum = require( "bignum" );
 
 const BYTES_PER_CHAR = 2;
 const TICKS_IN_MILLISECOND = 10000;
@@ -31,12 +30,9 @@ BufferReader.prototype = {
 	},
 
 	readInt64() {
-		let val = bignum.fromBuffer( this.buffer.slice( this.offset, this.offset + 8 ), {
-			endian: "little",
-			size: 8
-		} );
+		let val = this.buffer.slice( this.offset, this.offset + 8 ).readBigInt64LE();
 		this.offset += 8;
-		return val.toNumber();
+		return Number( val );
 	},
 
 	readDate() {

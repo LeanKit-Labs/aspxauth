@@ -59,7 +59,7 @@ describe( "aspxauth#decrypt", () => {
 
 	describe( "when token is a buffer", () => {
 		it( "should return token object", function() {
-			token = new Buffer( token, "hex" );
+			token = Buffer.from( token, "hex" );
 			configAndDecrypt();
 			result.should.eql( version2TokenContents );
 		} );

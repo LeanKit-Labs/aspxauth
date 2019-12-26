@@ -7,9 +7,8 @@
     "src"
   ],
   "scripts": {
-    "format": "jscs --fix ./",
     "lint": "eslint --fix ./",
-    "pretest": "npm run format && npm run lint",
+    "pretest": "npm run lint",
     "test": "npm run cover",
     "test:only": "mocha spec/*.spec.js",
     "test:watch": "npm run test:only -- -w",
@@ -44,17 +43,13 @@
     "FormsAuthentication"
   ],
   "license": "MIT",
-  "dependencies": {
-    "bignum": "^0.12.5"
-  },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "eslint": "^3.7.0",
-    "eslint-config-leankit": "^3.0.0",
-    "jscs": "^3.0.7",
-    "mocha": "^3.1.2",
-    "nyc": "^8.3.0",
-    "sinon": "^1.17.6"
+    "chai": "^4.2.0",
+    "eslint": "^6.8.0",
+    "eslint-config-leankit": "^5.1.0",
+    "mocha": "^6.2.2",
+    "nyc": "^15.0.0",
+    "sinon": "^8.0.1"
   },
   "nyc": {
     "include": "src"
