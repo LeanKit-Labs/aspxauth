@@ -1,3 +1,9 @@
+## 2.x
+
+### 2.0.0
+
+* Node 12 support and bignum -> BigInt
+
 ## 1.x
 
 ### 1.1.2
