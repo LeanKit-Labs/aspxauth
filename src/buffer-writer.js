@@ -1,13 +1,12 @@
+/* global BigInt */
 "use strict";
-
-const bignum = require( "bignum" );
 
 const BYTES_PER_CHAR = 2;
 const TICKS_IN_MILLISECOND = 10000;
 const MILLISECONDS_EPOCH_OFFSET = 62135596800000;
 
 function BufferWriter( size ) {
-	this.buffer = new Buffer( size );
+	this.buffer = Buffer.alloc( size );
 	this.offset = 0;
 }
 
@@ -29,12 +28,14 @@ BufferWriter.prototype = {
 	},
 
 	writeInt64( val ) {
-		this.writeBuffer( bignum( val ).toBuffer( { endian: "little", size: 8 } ) );
+		let buf = Buffer.alloc( 8 );
+		buf.writeBigInt64LE( BigInt( val ) );
+		this.writeBuffer( buf );
 		return this;
 	},
 
 	writeDate( val ) {
-		this.writeInt64( bignum( val.getTime() ).add( MILLISECONDS_EPOCH_OFFSET ).mul( TICKS_IN_MILLISECOND ) );
+		this.writeInt64( BigInt( ( val.getTime() + MILLISECONDS_EPOCH_OFFSET ) * TICKS_IN_MILLISECOND ) );
 		return this;
 	},
 

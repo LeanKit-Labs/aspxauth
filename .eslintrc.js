@@ -16,5 +16,10 @@ module.exports = {
 		"no-invalid-this": 0,
 		"no-mixed-operators": 0,
 		strict: 0
+	},
+	env: {
+		node: true,
+		browser: false,
+		commonjs: false
 	}
 };
