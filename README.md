@@ -1,5 +1,7 @@
 # aspxauth
 
+**Note:** There are many variables, flags, and version-specific considerations for how .NET generates the `.aspxauth` cookie. This library works for our needs using older versions of the .NET framework. Your milage may vary.
+
 Provides utilities to assist in generating, validating and decrypting .NET authorization tickets (usually set in the .ASPXAUTH cookie) for interoperation with .NET authentication.
 
 ## Setup
