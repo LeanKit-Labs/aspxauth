@@ -62,7 +62,7 @@ module.exports = config => {
 	const DEFAULT_IS_PERSISTENT = !!config.defaultPersistent;
 	const DEFAULT_COOKIE_PATH = config.defaultCookiePath || "/";
 
-	const BASE_PAYLOAD_SIZE = DECRYPTION_METHOD.headerSize + 21;
+	const BASE_PAYLOAD_SIZE = 21;
 
 	function validate( bytes ) {
 		const signature = bytes.slice( -VALIDATION_METHOD.signatureSize );
@@ -85,6 +85,11 @@ module.exports = config => {
 			const decryptor = createDecipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, DECRYPTION_IV );
 			const payload = bytes.slice( 0, -VALIDATION_METHOD.signatureSize );
 			const decryptedBytes = Buffer.concat( [ decryptor.update( payload ), decryptor.final() ] );
+
+			if ( !validate( decryptedBytes.slice( DECRYPTION_METHOD.headerSize ) ) ) {
+				return null;
+			}
+
 			const reader = new BufferReader( decryptedBytes );
 			const ticket = {};
 
@@ -122,8 +127,6 @@ module.exports = config => {
 		const stringsSize = BufferWriter.stringSize( ticket.name ) + BufferWriter.stringSize( ticket.customData ) + BufferWriter.stringSize( ticket.cookiePath || DEFAULT_COOKIE_PATH );
 		const writer = new BufferWriter( BASE_PAYLOAD_SIZE + stringsSize );
 
-		// Write a random header to serve as a salt
-		writer.writeBuffer( randomBytes( DECRYPTION_METHOD.headerSize ) );
 		writer.writeByte( FORMAT_VERSION );
 
 		if ( REQUIRED_VERSION ) {
@@ -146,9 +149,15 @@ module.exports = config => {
 		writer.writeString( ticket.cookiePath || DEFAULT_COOKIE_PATH );
 		writer.writeByte( FOOTER );
 
-		const encryptor = createCipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, DECRYPTION_IV );
-		const encryptedBytes = Buffer.concat( [ encryptor.update( writer.buffer ), encryptor.final() ] );
+		// add a hash of the preencrypted bytes
+		const preEncryptedHash = createHmac( "sha1", VALIDATION_KEY );
+		preEncryptedHash.update( writer.buffer );
+		const preEncryptedBytes = Buffer.concat( [ randomBytes( DECRYPTION_METHOD.headerSize ), writer.buffer, preEncryptedHash.digest() ] );
 
+		const encryptor = createCipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, DECRYPTION_IV );
+		const encryptedBytes = Buffer.concat( [ encryptor.update( preEncryptedBytes ), encryptor.final() ] );
+
+		// add a hash of the encrypted bytes
 		const hash = createHmac( "sha1", VALIDATION_KEY );
 		hash.update( encryptedBytes );
 
