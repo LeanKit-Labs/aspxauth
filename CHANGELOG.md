@@ -1,3 +1,9 @@
+## 3.x
+
+### 3.0.0
+
+* Added extra signature of unencrpyted data required in .NET validation
+
 ## 2.x
 
 ### 2.0.0

@@ -1,6 +1,6 @@
 {
   "name": "aspxauth",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Verify and decrypt .NET's .ASPXAUTH cookie from node",
   "main": "src/index.js",
   "files": [
