@@ -50,7 +50,7 @@ const FOOTER = 0xff;
 module.exports = config => {
 	const VALIDATION_METHOD = VALIDATION_METHODS[ config.validationMethod || "sha1" ];
 	const DECRYPTION_METHOD = DECRYPTION_METHODS[ config.decryptionMethod || "aes" ];
-	const mode = config.mode || modes.dotnet45;
+	const mode = config.mode || modes.legacy;
 
 	assert( VALIDATION_METHOD, "Invalid validation method" );
 	assert( DECRYPTION_METHOD, "Invalid decryption method" );
@@ -85,7 +85,8 @@ module.exports = config => {
 		const bytes = cookie instanceof Buffer ? cookie : Buffer.from( cookie, "hex" );
 
 		if ( !validate( bytes ) ) {
-			throw new Error( "Signature validation failed" );
+			console.error( "Signature validation failed" );
+			return null;
 		}
 
 		const decryptor = createDecipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, mode === modes.dotnet45 ? bytes.slice( 0, DECRYPTION_METHOD.ivSize ) : DECRYPTION_IV );
@@ -93,7 +94,8 @@ module.exports = config => {
 		const decryptedBytes = Buffer.concat( [ decryptor.update( payload ), decryptor.final() ] );
 
 		if ( mode !== modes.dotnet45 && !validate( decryptedBytes.slice( DECRYPTION_METHOD.headerSize ) ) ) {
-			throw new Error( "Ticket validation failed" );
+			console.error( "Ticket validation failed" );
+			return null;
 		}
 
 		const reader = new BufferReader( decryptedBytes );
@@ -129,9 +131,6 @@ module.exports = config => {
 	}
 
 	function encrypt( ticket ) {
-		if ( mode !== modes.legacy ) {
-			throw new Error( "dotnet45 is not supported" );
-		}
 		const stringsSize = BufferWriter.stringSize( ticket.name ) + BufferWriter.stringSize( ticket.customData ) + BufferWriter.stringSize( ticket.cookiePath || DEFAULT_COOKIE_PATH );
 		const writer = new BufferWriter( BASE_PAYLOAD_SIZE + stringsSize );
 
@@ -160,7 +159,9 @@ module.exports = config => {
 		// add a hash of the preencrypted bytes
 		const preEncryptedHash = createHmac( "sha1", VALIDATION_KEY );
 		preEncryptedHash.update( writer.buffer );
-		const preEncryptedBytes = Buffer.concat( [ randomBytes( DECRYPTION_METHOD.headerSize ), writer.buffer, preEncryptedHash.digest() ] );
+		const preEncryptedBytes = mode === modes.dotnet45 ?
+			Buffer.concat( [ randomBytes( DECRYPTION_IV.length ), writer.buffer ] ) :
+			Buffer.concat( [ randomBytes( DECRYPTION_METHOD.headerSize ), writer.buffer, preEncryptedHash.digest() ] );
 
 		const encryptor = createCipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, DECRYPTION_IV );
 		const encryptedBytes = Buffer.concat( [ encryptor.update( preEncryptedBytes ), encryptor.final() ] );
