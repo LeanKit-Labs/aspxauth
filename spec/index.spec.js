@@ -3,6 +3,7 @@
 const factory = require( "../src/index" );
 const useFakeTimers = require( "sinon" ).useFakeTimers;
 const chai = require( "chai" );
+const expect = require( "chai" ).expect;
 chai.should();
 
 describe( "aspxauth#decrypt", () => {
@@ -43,14 +44,14 @@ describe( "aspxauth#decrypt", () => {
 	} );
 
 	describe( "when configuration and token are valid", () => {
-		it( "should return ticket object", function() {
+		it( "should return ticket object", function () {
 			configAndDecrypt();
 			result.should.eql( version2TokenContents );
 		} );
 	} );
 
 	describe( "when token is not valid", () => {
-		it( "should return null", function() {
+		it( "should return null", function () {
 			token = "87";
 			configAndDecrypt();
 			( result === null ).should.be.true; // eslint-disable-line no-unused-expressions
@@ -58,7 +59,7 @@ describe( "aspxauth#decrypt", () => {
 	} );
 
 	describe( "when signature on unencrypted bytes does not match hash", () => {
-		it( "should return null", function() {
+		it( "should return null", function () {
 			token = "d522006c09b3cdc7cc77e5fce18e4049a4a0532c60111c35abf1c431ed36deebbc0eaf50f2c085e504f59e41c4f17952c1fbdf3afccc530da188b2577ff0aa65dea41e2cce59b6b657c3f5f869c52a75f0aa0a22f700656b5b7ba01b3f39a64f8b36742ad82fc53073556e8b87eb12ccb04ed027f4cd07aa726519e54a7112c324306c41b1a9df8f06b04aebf07e0a881b02a5981555040bc63fe3410210f0bbfd26ada59f5cc73e5dfe7bc52faef2be82f5699891ace2ac8f84104b67f9a6e927a12791be72479e2a63732c457479228c3c8be34fdc880e44d0b6e46b909c1f8df7921fb320b166f4a54bfc276325afe4504ea9e4b270050676447dd6d4f6d7f96ce61562e166ceb56c1d0d7df5e269775ed4f553cf7726b75426d6164f0cfff973225c";
 			configAndDecrypt();
 			( result === null ).should.be.true; // eslint-disable-line no-unused-expressions
@@ -66,7 +67,7 @@ describe( "aspxauth#decrypt", () => {
 	} );
 
 	describe( "when token is a buffer", () => {
-		it( "should return token object", function() {
+		it( "should return token object", function () {
 			token = Buffer.from( token, "hex" );
 			configAndDecrypt();
 			result.should.eql( version2TokenContents );
@@ -82,10 +83,11 @@ describe( "aspxauth#decrypt", () => {
 	} );
 
 	describe( "when specified ticket version does not match", () => {
-		it( "should return null", () => {
+		it( "should throw", () => {
 			config.ticketVersion = 3;
-			configAndDecrypt();
-			( result === null ).should.be.true; // eslint-disable-line no-unused-expressions
+			expect( function() {
+				configAndDecrypt();
+			} ).to.throw( "Invalid ticket version" );
 		} );
 	} );
 
@@ -368,4 +370,29 @@ describe( "aspxauth#encrypt", () => {
 			encrypt( {} ).should.be.an.instanceof( Buffer );
 		} );
 	} );
+
+	describe( "with mode dotnet45", () => {
+		before( () => {
+			configure( {
+				validationMethod: "sha1",
+				decryptionMethod: "aes",
+				mode: "dotnet45"
+			} );
+		} );
+
+
+		it( "should use dotnet45 for encryption and decryption", () => {
+			const ticket = {
+				ticketVersion: 1,
+				issueDate: new Date( 2016, 0, 1, 0, 0, 0 ),
+				expirationDate: new Date( 2050, 0, 1, 0, 0, 0 ),
+				isPersistent: false,
+				name: "test",
+				customData: "custom data",
+				cookiePath: "/"
+			};
+			test( ticket, ticket );
+		} );
+	} );
 } );
+

@@ -4,6 +4,12 @@ const assert = require( "assert" );
 const { createCipheriv, createDecipheriv, createHmac, randomBytes } = require( "crypto" );
 const BufferReader = require( "./buffer-reader" );
 const BufferWriter = require( "./buffer-writer" );
+const dotnet45 = require( "./dotnet45" );
+
+const modes = {
+	legacy: "legacy",
+	dotnet45: "dotnet45"
+};
 
 const VALIDATION_METHODS = {
 	sha1: {
@@ -44,14 +50,15 @@ const FOOTER = 0xff;
 module.exports = config => {
 	const VALIDATION_METHOD = VALIDATION_METHODS[ config.validationMethod || "sha1" ];
 	const DECRYPTION_METHOD = DECRYPTION_METHODS[ config.decryptionMethod || "aes" ];
+	const mode = config.mode || modes.legacy;
 
 	assert( VALIDATION_METHOD, "Invalid validation method" );
 	assert( DECRYPTION_METHOD, "Invalid decryption method" );
 	assert( config.validationKey, "'validationKey' is required" );
 	assert( config.decryptionKey, "'decryptionKey' is required" );
 
-	const VALIDATION_KEY = Buffer.from( config.validationKey, "hex" );
-	const DECRYPTION_KEY = Buffer.from( config.decryptionKey, "hex" );
+	const VALIDATION_KEY = mode === modes.dotnet45 ? dotnet45.deriveKey( config.validationKey ) : Buffer.from( config.validationKey, "hex" );
+	const DECRYPTION_KEY = mode === modes.dotnet45 ? dotnet45.deriveKey( config.decryptionKey ) : Buffer.from( config.decryptionKey, "hex" );
 	const DECRYPTION_IV = config.decryptionIV ? Buffer.from( config.decryptionIV, "hex" ) : Buffer.alloc( DECRYPTION_METHOD.ivSize );
 
 	const REQUIRED_VERSION = config.ticketVersion || false;
@@ -75,52 +82,52 @@ module.exports = config => {
 	}
 
 	function decrypt( cookie ) {
-		try {
-			const bytes = cookie instanceof Buffer ? cookie : Buffer.from( cookie, "hex" );
+		const bytes = cookie instanceof Buffer ? cookie : Buffer.from( cookie, "hex" );
 
-			if ( !validate( bytes ) ) {
-				return null;
-			}
-
-			const decryptor = createDecipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, DECRYPTION_IV );
-			const payload = bytes.slice( 0, -VALIDATION_METHOD.signatureSize );
-			const decryptedBytes = Buffer.concat( [ decryptor.update( payload ), decryptor.final() ] );
-
-			if ( !validate( decryptedBytes.slice( DECRYPTION_METHOD.headerSize ) ) ) {
-				return null;
-			}
-
-			const reader = new BufferReader( decryptedBytes );
-			const ticket = {};
-
-			reader.skip( DECRYPTION_METHOD.headerSize );
-			reader.assertByte( FORMAT_VERSION, "format version" );
-
-			if ( REQUIRED_VERSION ) {
-				reader.assertByte( REQUIRED_VERSION, "ticket version" );
-				ticket.ticketVersion = REQUIRED_VERSION;
-			} else {
-				ticket.ticketVersion = reader.readByte();
-			}
-
-			ticket.issueDate = reader.readDate();
-			reader.assertByte( SPACER, "spacer" );
-			ticket.expirationDate = reader.readDate();
-
-			if ( VALIDATE_EXPIRATION && ticket.expirationDate < Date.now() ) {
-				return null;
-			}
-
-			ticket.isPersistent = reader.readBool();
-			ticket.name = reader.readString();
-			ticket.customData = reader.readString();
-			ticket.cookiePath = reader.readString();
-			reader.assertByte( FOOTER, "footer" );
-
-			return ticket;
-		} catch ( e ) {
+		if ( !validate( bytes ) ) {
+			console.error( "Signature validation failed" );
 			return null;
 		}
+
+		const decryptor = createDecipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, mode === modes.dotnet45 ? bytes.slice( 0, DECRYPTION_METHOD.ivSize ) : DECRYPTION_IV );
+		const payload = bytes.slice( mode === modes.dotnet45 ? DECRYPTION_IV.length : 0, -VALIDATION_METHOD.signatureSize );
+		const decryptedBytes = Buffer.concat( [ decryptor.update( payload ), decryptor.final() ] );
+
+		if ( mode !== modes.dotnet45 && !validate( decryptedBytes.slice( DECRYPTION_METHOD.headerSize ) ) ) {
+			console.error( "Ticket validation failed" );
+			return null;
+		}
+
+		const reader = new BufferReader( decryptedBytes );
+		const ticket = {};
+
+		if ( mode !== modes.dotnet45 ) {
+			reader.skip( DECRYPTION_METHOD.headerSize );
+		}
+		reader.assertByte( FORMAT_VERSION, "format version" );
+
+		if ( REQUIRED_VERSION ) {
+			reader.assertByte( REQUIRED_VERSION, "ticket version" );
+			ticket.ticketVersion = REQUIRED_VERSION;
+		} else {
+			ticket.ticketVersion = reader.readByte();
+		}
+
+		ticket.issueDate = reader.readDate();
+		reader.assertByte( SPACER, "spacer" );
+		ticket.expirationDate = reader.readDate();
+
+		if ( VALIDATE_EXPIRATION && ticket.expirationDate < Date.now() ) {
+			return null;
+		}
+
+		ticket.isPersistent = reader.readBool();
+		ticket.name = reader.readString();
+		ticket.customData = reader.readString();
+		ticket.cookiePath = reader.readString();
+		reader.assertByte( FOOTER, "footer" );
+
+		return ticket;
 	}
 
 	function encrypt( ticket ) {
@@ -152,7 +159,9 @@ module.exports = config => {
 		// add a hash of the preencrypted bytes
 		const preEncryptedHash = createHmac( "sha1", VALIDATION_KEY );
 		preEncryptedHash.update( writer.buffer );
-		const preEncryptedBytes = Buffer.concat( [ randomBytes( DECRYPTION_METHOD.headerSize ), writer.buffer, preEncryptedHash.digest() ] );
+		const preEncryptedBytes = mode === modes.dotnet45 ?
+			Buffer.concat( [ randomBytes( DECRYPTION_IV.length ), writer.buffer ] ) :
+			Buffer.concat( [ randomBytes( DECRYPTION_METHOD.headerSize ), writer.buffer, preEncryptedHash.digest() ] );
 
 		const encryptor = createCipheriv( DECRYPTION_METHOD.cipher, DECRYPTION_KEY, DECRYPTION_IV );
 		const encryptedBytes = Buffer.concat( [ encryptor.update( preEncryptedBytes ), encryptor.final() ] );

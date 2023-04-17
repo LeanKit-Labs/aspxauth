@@ -19,7 +19,7 @@ The module must be initialized with configuration that corresponds to your .NET 
 - `defaultTTL` (integer): (default 24hrs) if provided is used as milliseconds from `issueDate` to expire generated tickets
 - `defaultPersistent` (bool): (default `false`) if provided is used as default `isPersistent` value for generated tickets
 - `defaultCookiePath` (string): (default "/") if provided is used as default `cookiePath` for generated tickets
-
+- `mode` (string): (default "dotnet45") if provided, it will try to decode as .net 4.5 compatible ticket, else specify "legacy"
 
 ```js
 // Configure
@@ -48,3 +48,13 @@ var authTicket = aspxauth.decrypt( req.cookies[ ".ASPXAUTH" ] );
 ### Supported decryption methods
 
 - aes
+
+### Supported encryption modes
+
+- legacy
+- dotnet45
+
+### Supported decryption modes
+
+- legacy
+- dotnet45
