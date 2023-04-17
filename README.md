@@ -52,6 +52,7 @@ var authTicket = aspxauth.decrypt( req.cookies[ ".ASPXAUTH" ] );
 ### Supported encryption modes
 
 - legacy
+- dotnet45
 
 ### Supported decryption modes
 
